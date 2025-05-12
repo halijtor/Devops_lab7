@@ -6,31 +6,30 @@ on:
       - main
 
 jobs:
-  build-backend:
-    name: Build & test backend
+  build_and_test:
+    name: Build & Test Both
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || contains(github.event.head_commit.message, 'backend')
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Build backend Docker image
-        run: docker build spring-backend -t my-backend:${{ github.sha }}
+      - name: Build backend image
+        run: |
+          docker build \
+            -f backend.Dockerfile \
+            . \
+            -t my-backend:${{ github.sha }}
 
       - name: Run backend tests
         run: |
           cd spring-backend
           mvn test -q
 
-  build-frontend:
-    name: Build & test frontend
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || contains(github.event.head_commit.message, 'frontend')
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Build frontend Docker image
+      - name: Build frontend image
         run: |
-          docker build react-frontend \
+          docker build \
+            -f frontend.Dockerfile \
+            . \
             --build-arg REACT_APP_API_BASE_URL=/api/v1 \
             -t my-frontend:${{ github.sha }}
 
@@ -41,14 +40,15 @@ jobs:
           yarn test --ci --coverage=false
 
   deploy:
-    name: Deploy with Docker Compose
-    needs: [build-backend, build-frontend]
+    name: Deploy via docker-compose
+    needs: build_and_test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Pull & restart services
+      - name: Pull images & bring up
         run: |
           docker-compose pull
           docker-compose up -d
