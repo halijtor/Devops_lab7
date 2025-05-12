@@ -3,7 +3,7 @@ import axios from "axios";
 const AuthenticateUserDataService = (username, password) => {
   const apiUrl = process.env.REACT_APP_API_BASE_URL;
   return axios
-    .post(`${apiUrl}/auth/authenticate`, {
+    .post(`${apiUrl}/api/v1/authenticate`, {
       username,
       password,
     })

@@ -2,7 +2,7 @@ import axios from "../customAxiosConfig/CustomAxiosConfig";
 
 const SignUpAppClientService = (user) => {
   try {
-    return axios.post(`/auth/signup`, user);
+    return axios.post(`/signup`, user);
   } catch (err) {
     let error = "";
     if (err.response) {

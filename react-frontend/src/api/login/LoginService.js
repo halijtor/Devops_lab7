@@ -2,7 +2,7 @@ import axios from "../customAxiosConfig/CustomAxiosConfig";
 
 const LoginService = (username) => {
   try {
-    return axios.post(`/auth/login`, null, {
+    return axios.post(`/login`, null, {
       params: {
         username,
       },
