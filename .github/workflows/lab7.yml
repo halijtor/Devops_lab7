@@ -1,4 +1,5 @@
 name: Lab7 CI
+
 on:
   push:
     branches:
@@ -6,38 +7,33 @@ on:
 
 jobs:
   build-backend:
+    name: Build & test backend
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.message, 'backend') || github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' || contains(github.event.head_commit.message, 'backend')
     steps:
       - uses: actions/checkout@v3
-      - name: Build backend image
-        run: |
-          cd spring-backend
-          docker build -t my-backend:${{ github.sha }} .
 
-  build-frontend:
-    runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.message, 'frontend') || github.event_name == 'push'
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build frontend image
-        run: |
-          cd react-frontend
-          docker build --build-arg REACT_APP_API_BASE_URL=/api/v1 -t my-frontend:${{ github.sha }} .
+      - name: Build backend Docker image
+        run: docker build spring-backend -t my-backend:${{ github.sha }}
 
-  test-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
       - name: Run backend tests
         run: |
           cd spring-backend
           mvn test -q
 
-  test-frontend:
+  build-frontend:
+    name: Build & test frontend
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || contains(github.event.head_commit.message, 'frontend')
     steps:
       - uses: actions/checkout@v3
+
+      - name: Build frontend Docker image
+        run: |
+          docker build react-frontend \
+            --build-arg REACT_APP_API_BASE_URL=/api/v1 \
+            -t my-frontend:${{ github.sha }}
+
       - name: Run frontend tests
         run: |
           cd react-frontend
@@ -45,13 +41,14 @@ jobs:
           yarn test --ci --coverage=false
 
   deploy:
-    needs: [build-backend, build-frontend, test-backend, test-frontend]
+    name: Deploy with Docker Compose
+    needs: [build-backend, build-frontend]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
-      - name: Deploy with Docker Compose
+
+      - name: Pull & restart services
         run: |
           docker-compose pull
           docker-compose up -d
-
