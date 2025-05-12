@@ -16,7 +16,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: spring-backend/Dockerfile
+      dockerfile: backend.Dockerfile
     depends_on:
       - db
     environment:
@@ -30,7 +30,7 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: react-frontend/Dockerfile
+      dockerfile: frontend.Dockerfile
     depends_on:
       - backend
     ports:
