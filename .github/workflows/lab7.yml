@@ -10,12 +10,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Build backend image
-        run: docker build \
-          -f backend.Dockerfile \
-          -t my-backend:${{ github.sha }} \
-          .
 
+      - name: Build backend image
+        run: |
+          docker build -f backend.Dockerfile \
+            -t my-backend:${{ github.sha }} \
+            .
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build frontend image
+        run: |
+          docker build -f frontend.Dockerfile \
+            --build-arg REACT_APP_API_BASE_URL=/api/v1 \
+            -t my-frontend:${{ github.sha }} \
+            .
 
   test-backend:
     runs-on: ubuntu-latest
@@ -26,17 +38,6 @@ jobs:
         run: |
           cd spring-backend
           mvn test -q
-
-  build-frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build frontend image
-        run: docker build \
-          -f frontend.Dockerfile \
-          --build-arg REACT_APP_API_BASE_URL=/api/v1 \
-          -t my-frontend:${{ github.sha }} \
-          .
 
   test-frontend:
     runs-on: ubuntu-latest
